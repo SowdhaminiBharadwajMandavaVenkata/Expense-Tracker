@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "expense_api/main.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "expense_frontend/public/index.html"
+    }
+  ]
+}
