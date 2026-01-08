@@ -24,7 +24,7 @@ ChartJS.register(
 
 // ✅ If your backend is local:
 //const API_BASE = "http://127.0.0.1:8000";
-const API_BASE = window.location.origin + "/api";
+const API_BASE = "/api";
 const CATEGORY_OPTIONS = ["Food", "Transport", "Shopping", "Rent", "Utilities", "Other"];
 
 const CATEGORY_ICON = {

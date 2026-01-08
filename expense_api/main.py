@@ -1,3 +1,4 @@
+import os
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
@@ -6,26 +7,24 @@ import pandas as pd
 import numpy as np
 
 app = FastAPI(title="Expense Tracker API", version="1.0")
+
+# ✅ Update allow_origins to include your actual Vercel deployment URL
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "*.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-# ✅ Update ONLY this password to your actual PostgreSQL password
-DB_CONFIG = {
-    "host": "localhost",
-    "database": "expense_db",
-    "user": "postgres",
-    "password": "postgre123",
-    "port": 5432
-}
+# ✅ Use environment variables for database connection (Required for Vercel)
+# You will set DATABASE_URL in the Vercel Dashboard under Settings > Environment Variables
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 def get_connection():
-    return psycopg2.connect(**DB_CONFIG)
+    if not DATABASE_URL:
+        raise HTTPException(status_code=500, detail="DATABASE_URL environment variable is not set")
+    return psycopg2.connect(DATABASE_URL)
 
 # ---- Request model (matches your table columns) ----
 class Expense(BaseModel):
@@ -59,7 +58,6 @@ def add_expense(exp: Expense):
         return {"message": "Expense added", "id": new_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
 
 # ---- Delete expenses ----
 @app.delete("/expenses/{expense_id}")
@@ -84,7 +82,6 @@ def delete_expense(expense_id: int):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 # ---- List expenses ----
 @app.get("/expenses")

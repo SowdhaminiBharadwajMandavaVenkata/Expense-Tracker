@@ -6,7 +6,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "expense_frontend/public/index.html"
+      "destination": "/expense_frontend/build/$1"
     }
   ]
 }
