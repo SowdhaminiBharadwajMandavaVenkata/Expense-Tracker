@@ -6,7 +6,7 @@ import psycopg2
 import pandas as pd
 import numpy as np
 
-app = FastAPI(title="Expense Tracker API", version="1.0")
+app = FastAPI(title="Expense Tracker API", version="1.0", root_path="/api")
 
 # ✅ FIX: Explicitly allow methods to prevent 405 Method Not Allowed errors
 app.add_middleware(

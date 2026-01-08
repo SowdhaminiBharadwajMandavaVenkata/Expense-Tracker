@@ -16,8 +16,8 @@
       "destination": "expense_api/main.py"
     },
     {
-      "source": "/(.*)",
-      "destination": "/expense_frontend/$1" 
+      "source": "/((?!api/).*)",
+      "destination": "/expense_frontend/$1"
     }
   ]
 }
