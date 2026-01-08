@@ -17,7 +17,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/expense_frontend/$1" 
     }
   ]
 }
