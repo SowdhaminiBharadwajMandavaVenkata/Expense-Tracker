@@ -8,22 +8,25 @@ import numpy as np
 
 app = FastAPI(title="Expense Tracker API", version="1.0")
 
-# ✅ Update allow_origins to include your actual Vercel deployment URL
+# ✅ FIX: Explicitly allow methods to prevent 405 Method Not Allowed errors
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "*.vercel.app"],
+    allow_origins=["*"],  # Allows all origins; update with your Vercel URL for production
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],  # Explicitly allow these methods
     allow_headers=["*"],
 )
 
 # ✅ Use environment variables for database connection (Required for Vercel)
-# You will set DATABASE_URL in the Vercel Dashboard under Settings > Environment Variables
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 def get_connection():
     if not DATABASE_URL:
-        raise HTTPException(status_code=500, detail="DATABASE_URL environment variable is not set")
+        raise HTTPException(
+            status_code=500, 
+            detail="DATABASE_URL environment variable is not set in Vercel Dashboard"
+        )
+    # Ensure sslmode is required for cloud providers like Neon or Supabase
     return psycopg2.connect(DATABASE_URL)
 
 # ---- Request model (matches your table columns) ----
@@ -57,6 +60,7 @@ def add_expense(exp: Expense):
         conn.close()
         return {"message": "Expense added", "id": new_id}
     except Exception as e:
+        # ✅ Returns detailed error if database connection or query fails
         raise HTTPException(status_code=500, detail=str(e))
 
 # ---- Delete expenses ----
@@ -65,10 +69,8 @@ def delete_expense(expense_id: int):
     try:
         conn = get_connection()
         cur = conn.cursor()
-
         cur.execute("DELETE FROM expenses WHERE id = %s RETURNING id;", (expense_id,))
         deleted = cur.fetchone()
-
         conn.commit()
         cur.close()
         conn.close()
@@ -77,7 +79,6 @@ def delete_expense(expense_id: int):
             raise HTTPException(status_code=404, detail="Expense not found")
 
         return {"message": "Expense deleted", "id": deleted[0]}
-
     except HTTPException:
         raise
     except Exception as e:
@@ -122,6 +123,7 @@ def list_expenses(limit: int = 20):
 def analytics_summary():
     try:
         conn = get_connection()
+        # Read data directly from PostgreSQL into a Pandas DataFrame
         df = pd.read_sql("SELECT amount, category, expense_date FROM expenses;", conn)
         conn.close()
 
@@ -131,8 +133,8 @@ def analytics_summary():
         df["expense_date"] = pd.to_datetime(df["expense_date"], errors="coerce")
         df = df.dropna(subset=["expense_date"])
 
+        # Perform calculations using Pandas and NumPy
         df["month"] = df["expense_date"].dt.to_period("M").astype(str)
-
         category_totals = df.groupby("category")["amount"].sum().sort_values(ascending=False)
         monthly_totals = df.groupby("month")["amount"].sum().sort_values()
 
@@ -146,6 +148,5 @@ def analytics_summary():
             "category_totals": {k: float(v) for k, v in category_totals.to_dict().items()},
             "monthly_totals": {k: float(v) for k, v in monthly_totals.to_dict().items()},
         }
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
