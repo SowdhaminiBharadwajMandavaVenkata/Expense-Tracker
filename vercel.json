@@ -1,0 +1,23 @@
+{
+  "builds": [
+    {
+      "src": "expense_api/main.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "expense_frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "build" }
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "expense_api/main.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
