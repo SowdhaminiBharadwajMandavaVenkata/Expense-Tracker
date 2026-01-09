@@ -14,7 +14,7 @@
 ### Database
 - PostgreSQL
 ## ⚙️ Setup & Installation
-### 1. Clone Repository
+1. Clone Repository
 ``` bash
 git clone https://github.com/<your-username>/Expense-Tracker.git
 cd Expense-Tracker
